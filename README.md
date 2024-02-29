@@ -5,6 +5,4 @@
 
 # This is the souce files of the Deep Origins GUI Overhaul resource pack.
 
-**Copyright © 2024** Devoneox
-
-_MIT license_
+**Copyright © 2024** Devoneox  -  _MIT license_
