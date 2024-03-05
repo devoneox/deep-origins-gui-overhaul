@@ -1,49 +1,43 @@
 #version 150
 
-#define POSITION_TEX
-
-//Code by DartCat25
-//https://www.planetminecraft.com/texture-pack/menus-enchanted/
-
-//Mini-config for Menus - Enchanted
-#define EXPECTED_TEXSIZE vec2(80)
+#moj_import <fog.glsl>
 
 uniform sampler2D Sampler0;
 
 uniform vec4 ColorModulator;
+uniform float FogStart;
+uniform float FogEnd;
+uniform vec4 FogColor;
 
-in vec2 texCoord0;
+in float vertexDistance;
 in vec4 vertexColor;
-in float isNeg;
-in vec2 ScrSize;
+in vec2 texCoord0;
+in float shadow;
 
 out vec4 fragColor;
 
-// A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
-int hash(int x) {
-    x += ( x << 10 );
-    x ^= ( x >>  6 );
-    x += ( x <<  3 );
-    x ^= ( x >> 11 );
-    x += ( x << 15 );
-    return x;
-}
-
-int noise(ivec2 v, int seed) {
-    return hash(v.x ^ hash(v.y + seed) ^ seed);
-}
-
 void main() {
-    vec4 color = texture(Sampler0, texCoord0);
-    vec2 texSize = textureSize(Sampler0, 0);
+    gl_FragDepth = gl_FragCoord.z - 0.001;
 
-    if(texSize == EXPECTED_TEXSIZE)
+    vec4 color = texture(Sampler0, texCoord0);
+
+    if (color.a <= 0.1 && shadow != 0)
     {
-        #moj_import <menus-enchanted.glsl>
+        color = texture(Sampler0, texCoord0 + vec2(-1) / textureSize(Sampler0, 0));
+        color.rgb /= 4;
+        gl_FragDepth += 0.001;
     }
-    
+
+    color *= vertexColor * ColorModulator;
+
     if (color.a < 0.1) {
         discard;
     }
-    fragColor = color * ColorModulator;
+	if (vertexDistance > 800.0
+        && color.r > 0.2479 && color.r < 0.2481
+        && color.g > 0.2479 && color.g < 0.2481
+        && color.b > 0.2479 && color.b < 0.2481) {
+        color = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
 }
